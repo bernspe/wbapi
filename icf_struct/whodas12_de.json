@@ -1,0 +1,72 @@
+{"1": {
+  "s": "Stehen",
+  "t": "Kannst Du eine längere Zeit (ca. 30 Minuten) stehen?",
+  "l": "d415",
+  "p": ["environment-background-aesthetic-desktop-wallpaper-8k-photography-background.jpg","silhouette-one-person-surfing-sunset-generated-by-ai.jpg","drawing-woman-vest-jeans-standing-generative-ai.jpg","man-suit-stands-cliff-looking-mountain.jpg","silhouette-one-person-standing-coastline-generated-by-ai.jpg"]
+},
+"2": {
+  "s": "Haushalt",
+  "t": "Kommst Du Deinen Haushaltspflichten nach?",
+  "l": "d620,d630,d640,d650,d660",
+  "p": ["sharp-steel-blades-cut-through-green-foliage-generated-by-ai.jpg","household-chemicals.jpg","woman-washing-food-sink-freshness-generated-by-ai.jpg","clean-kitchen-requires-proper-hygiene-dishwashing-equipment-generated-by-ai.jpg"]
+},
+"3": {
+  "s": "Lernen",
+  "t": "Kannst Du neue Aufgaben lernen (z.B. Erlernen, an einen neuen Ort zu gelangen, den Du nicht kanntest)",
+  "l": "d155,d160,d175",
+  "p": ["smiling-school-children-studying-science-indoors-happily-generated-by-ai.jpg","cute-girl-reading-literature-library-shelf-generated-by-ai.jpg","photo-think-outside-box-school-green-blackboard-generat-ai.jpg","cute-girl-studying-outdoors-holding-picture-book-generated-by-ai.jpg","one-person-studying-literature-indoors-library-generated-by-ai.jpg"]
+},
+"4": {
+  "s": "Gesellschaft",
+  "t": "Wie viele Schwierigkeiten hattest Du, an gesellschaftlichen Aktivitäten (wie z.B. Festlichkeiten, religiöse oder andere Aktivitäten) in der gleichen Art und Weise teilzunehmen, wie jeder andere?",
+  "l": "d910,d920,d930,d950",
+  "p": ["smiling-seniors-enjoy-leisure-activity-outdoors-together-generated-by-ai.jpg","children-walking-traditional-costumes-halloween-night-generated-by-ai.jpg","community-learning-bonding-outdoors-enjoying-nature-fun-generative-ai.jpg","group-people-play-game-tug-war.jpg","active-seniors-enjoying-nature-exercising-smiling-together-generated-by-ai.jpg"]
+},
+"5": {
+  "s": "Belastung",
+  "t":"Wie sehr bist Du durch Deinen gesundheitlichen Zustand emotional belastet?",
+  "l": "",
+  "p": ["man-striped-shirt-looks-into-distance-looks-camera.jpg","smiling-girl-sitting-window-learning-technology-generated-by-ai.jpg","depression-loneliness-haunt-young-adults-dark-night-generated-by-artificial-intelligence.jpg","young-woman-leather-jacket-looking-sad-generated-by-ai.jpg","picture-world-where-ai-is-just-tool-business-efficiency-integral-part-daily-l.jpg"]
+},
+"6": {
+  "s": "Konzentrieren",
+  "t": "Kannst Du Dich für 10 Minuten auf etwas konzentrieren?",
+  "l": "d160,d175,d310,d325,d350,d355",
+  "p": ["young-woman-studying-library-surrounded-by-books-generated-by-ai.jpg","young-woman-smiling-cooking-domestic-kitchen-generated-by-ai.jpg","shot-young-male-architect-working-his-desk-office-created-with-generative-ai.jpg","shot-young-female-architect-working-her-contract-home-created-with-generative-ai.jpg","young-woman-home-pondering-work-tasks-generated-by-ai.jpg"]
+},
+"7": {
+  "s": "Laufen",
+  "t": "Hast Du Probleme, eine längere Strecke (ca. einen Kilometer) zu Fuss zu gehen?",
+  "l": "d450,d455,d460",
+  "p": ["one-person-hiking-mountain-peak-sunrise-generated-by-ai.jpg","one-athlete-jogging-outdoors-enjoying-nature-healthy-lifestyle-generated-by-ai.jpg","sugarland-run-stream-valley-trail-hike-herndon-virginia-fairfax-county-spring-with-paved-path.jpg","couple-walking-beach-enjoying-sunset-romance-generated-by-ai.jpg","young-women-jogging-nature-sunset-generated-by-ai.jpg"]
+},
+"8": {
+  "s": "Waschen",
+  "t": "Kannst Du Deinen gesamten Körper waschen?",
+  "l": "d510,d520,d530",
+  "p": ["dinosaur-with-red-towel-its-head-is-standing-bathroom.jpg","photo-soothing-foot-soak.jpg","pumped-biceps.jpg","woman-washing-dishes-sink.jpg","wet-young-woman-enjoying-luxury-spa-treatment-generated-by-ai.jpg"]
+},
+"9": {
+  "s": "Anziehen",
+  "t":"Dich anziehen?",
+  "l": "d540,",
+  "p": ["seamstress-kid-lot-clothes-generate-ai.jpg","confident-businessman-exudes-elegance-fashionable-suit-generated-by-ai.jpg","portrait-smiling-cute-little-girl-hug-cuddle-excited-smiling-young-mum-show-love-affection.jpg","confident-young-businessman-modern-luxury-office-generated-by-ai.jpg","one-fashionable-woman-standing-clothing-store-window-generated-by-ai.jpg"]
+},
+"10": {
+  "s": "Smalltalk",
+  "t":"Hast Du Probleme im Umgang mit Personen, die Du nicht kennst?",
+  "l": "d720,d730,d740",
+  "p": ["smiling-crowd-walking-through-illuminated-city-streets-generated-by-ai.jpg","large-group-diverse-young-adults-smiling-together-generated-by-ai.jpg","two-women-talking-street.jpg","successful-multi-ethnic-business-team-standing-smiling-generated-by-ai.jpg","woman-hoodie-stands-dark-tunnel-with-crowd-people-her.jpg"]
+},
+"11": {
+  "s": "Freundschaft",
+  "t":"Eine Freundschaft aufrechtzuerhalten?",
+  "l": "d750,d770",
+  "p": ["two-cute-caucasian-boys-smiling-indoors-with-family-generated-by-ai.jpg","mother-daughter-embrace-autumn-sunlight-generated-by-ai.jpg","friendship-day-worldwide-celebration-human-connection-friendship-day-photography.jpg","watercolor-illustration-two-girls-talking.jpg","two-young-women-embrace-smiling-nature-generated-by-ai.jpg"]
+},
+"12": {
+  "s": "Arbeit",
+  "t": "Bei der Bewältigung Deines Arbeits-/Schulalltags?",
+  "l": "d820,d825,d830,d840,d845,d850,d855,d860,d865,d870",
+  "p": ["young-african-tailor-standing-with-sewing-equipment-generated-by-ai.jpg","men-repairing-bicycle-with-leather-protective-gloves-generated-by-ai.jpg","young-woman-casual-clothing-smiling-outdoors-generated-by-ai.jpg","man-hard-hat-with-helmet-drill-his-hand-is-digging-hole-building.jpg","woman-sits-desk-office-writing-piece-paper.jpg"]
+}}

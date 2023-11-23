@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+# set environment variables
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update && apt-get install -y libpq-dev gcc python-dev-is-python3 musl-dev ffmpeg libsm6 libxext6
+RUN mkdir /code
+WORKDIR /code
+ADD requirements.txt /code/
+RUN pip3 install -r requirements.txt
+ADD ./ /code/
