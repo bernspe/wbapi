@@ -37,7 +37,6 @@ RUN conda install numpy pandas geopandas rtree && \
     conda install django-oauth-toolkit && \
     conda install django-environ && \
     conda install django-cors-headers && \
-    conda install psycopg2-binary && \
     conda install gunicorn
     #conda install --quiet --freeze-installed -c main conda-pack
 
@@ -47,6 +46,7 @@ WORKDIR /code
 
 # ADD requirements.txt /code/
 RUN pip install python-datauri uri-template
+RUN pip install "psycopg[binary]"
 # RUN pip3 install -r requirements.txt
 ADD ./ /code/
 ENV PYTHONPATH=$PYTHONPATH:/opt/conda/envs/dockerenv/lib/python3.11/site-packages
