@@ -26,16 +26,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 APP_ENV=env('APP_ENV')
-if APP_ENV=='production':
-    # DEBUG = False
+if APP_ENV == 'production':
+    DEBUG = True
     BASE_URL = env('BASE_URL_DEPLOY')
     USE_X_FORWARDED_HOST = True
     FORCE_SCRIPT_NAME = '/wbapi/'
-    SESSION_COOKIE_PATH = '/wbapi/'
+    # SESSION_COOKIE_PATH = '/wbapi/'
 
     LOGIN_URL = "login/"
     LOGIN_REDIRECT_URL = '/wbapi/'
     LOGOUT_REDIRECT_URL = '/wbapi/'
+    ADMIN_URL = 'admin/'
 
     STATIC_URL = '/wbapi/static/'
 
@@ -50,7 +51,9 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
     STATIC_URL = "static/"
+    STATIC_ROOT = os.path.join(BASE_DIR, "static/")
     LOGIN_URL = '/admin/login/'
+    ADMIN_URL = 'admin/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -60,7 +63,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if DEBUG != True:
+if not DEBUG:
     geolocation_df=import_geo_files(BASE_DIR)
 else:
     geolocation_df=None
@@ -71,7 +74,7 @@ from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'cache-control','Access-Control-Allow-Origin','Access-Control-Expose-Headers','Invited-Username','sentry-trace'
 ]
-ALLOWED_HOSTS = ['*']
+
 CSRF_TRUSTED_ORIGINS = ['https://128.140.87.94','https://static.94.87.140.128.clients.your-server.de','http://128.140.87.94','http://static.94.87.140.128.clients.your-server.de']
 #set to false upon deployment
 CORS_ORIGIN_ALLOW_ALL=True
@@ -140,7 +143,7 @@ OAUTH2_PROVIDER = {
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if DEBUG:
+if APP_ENV != 'production':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -153,7 +156,6 @@ if DEBUG:
 
 else:
     DATABASES = {
-
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': env('POSTGRES_DB'),
@@ -161,10 +163,6 @@ else:
             'PASSWORD': env('POSTGRES_PASSWORD'),
             'HOST': 'db',
             'PORT': '5432',
-        },
-        'local': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
 
     }

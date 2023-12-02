@@ -29,26 +29,29 @@ services:
     networks:
       - backend
 
-  api:
+  wbapi:
     image: wallbreaker_api:${APP_VERSION}
     build:
       context: .
       dockerfile: Dockerfile-api
-    expose:
-      - 8000
+    ports:
+      - "8002:8002"
     volumes:
       - media:/code/media
       - static:/code/static
     depends_on:
       - db
+    entrypoint: ["./entrypoint.sh","${CLIENT_ID}","${CLIENT_SECRET}"]
     #Use for remote deploy
     # --threads=4 --worker-class=gthread --worker-tmp-dir /dev/shm
-    # command: bash -c "python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && python manage.py && gunicorn --workers=4 --bind 0.0.0.0:8002 --keyfile cert/api.renecol.org.key --certfile cert/api.renecol.org.crt DienstplanerAPI.wsgi:application"
-    command: bash -c "python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && python manage.py initadmin && python manage.py gen_groups && python manage.py createapplication --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --skip-authorization --name WBAPIAuth confidential password && gunicorn --workers=4 --bind 0.0.0.0:8002 wbapi.wsgi:application"
-    # command: bash -c "python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8002"
-    restart: always
+    # command: bash -c "conda activate dockerenv && python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && python manage.py initadmin && python manage.py gen_groups && python manage.py createapplication --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --skip-authorization --name WBAPIAuth confidential password && gunicorn --bind 0.0.0.0:8002 wbapi.wsgi:application"
+    # command: bash -c "gunicorn --bind 0.0.0.0:8002 wbapi.wsgi:application"
+    # For debugging to make it run forever
+    # command: tail -F /dev/null
+    # restart: always
     networks:
       - backend
+      - dienstplanerapi_backend
     env_file:
       - .env
     environment:
@@ -59,6 +62,8 @@ services:
 networks:
   backend:
     driver: bridge
+  dienstplanerapi_backend:
+    external: true
 
 volumes:
   postgres-data:

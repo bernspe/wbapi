@@ -20,14 +20,15 @@ from rest_framework.routers import DefaultRouter
 
 from datastore.views import SurveyView
 from users.views import UserRegister, check_token, get_login_requirements, UserViewSet
+from wbapi import settings
 
 router = DefaultRouter()
 router.register(r'surveys', SurveyView, 'survey')
 router.register(r'users', UserViewSet)
 
 urlpatterns = [
+    path(settings.ADMIN_URL, admin.site.urls),
     path('', include(router.urls)),
-    path("admin/", admin.site.urls),
     path('loginrequirements/',get_login_requirements),
     path('userinfo/', check_token),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
