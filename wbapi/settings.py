@@ -145,22 +145,19 @@ OAUTH2_PROVIDER = {
 
 # PICK UP POSTGRES SETUP HERE https://gist.github.com/axelbdt/74898d80ceee51b69a16b575345e8457
 
-#if APP_ENV == 'production':
-#    DATABASES = {
-#        'default': {
-#            'ENGINE': 'django.db.backends.postgresql',
-#            'OPTIONS': {
-#                'options': '-c search_path=myschema'
-#            },
-#            'NAME': env('POSTGRES_DB'),
-#            'USER': env('POSTGRES_USER'),
-#            'PASSWORD': env('POSTGRES_PASSWORD'),
-#            'HOST': 'db',
-#            'PORT': '5432',
-#        }
-#    }
-#else:
-DATABASES = {
+if APP_ENV == 'production':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': env('POSTGRES_DB'),
+            'USER': env('POSTGRES_USER'),
+            'PASSWORD': env('POSTGRES_PASSWORD'),
+            'HOST': 'db',
+            'PORT': '5432',
+        }
+    }
+else:
+    DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),

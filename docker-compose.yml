@@ -1,33 +1,33 @@
 version: '3'
 
 services:
-#  db:
-#    image: postgres
-#    environment:
-#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-#      POSTGRES_USER: ${POSTGRES_USER}
-#      POSTGRES_DB: ${POSTGRES_DB}
-#    env_file:
-#      - .env
-#    networks:
-#      - backend
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data
+  db:
+    image: postgres:14.10
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env
+    networks:
+      - backend
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
-#  db-admin:
-#    restart: always
-#    image: dpage/pgadmin4
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-#    env_file:
-#      - .env
-#    depends_on:
-#      - db
-#    ports:
-#      - "8080:80"
-#    networks:
-#      - backend
+  db-admin:
+    restart: always
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+    networks:
+      - backend
 
   wbapi:
     image: wallbreaker_api:${APP_VERSION}
@@ -39,8 +39,8 @@ services:
     volumes:
       - media:/code/media
       - static:/code/static
-#    depends_on:
-#      - db
+    depends_on:
+      - db
     entrypoint: ["./entrypoint.sh","${CLIENT_ID}","${CLIENT_SECRET}"]
     #Use for remote deploy
     # --threads=4 --worker-class=gthread --worker-tmp-dir /dev/shm
@@ -66,6 +66,6 @@ networks:
     external: true
 
 volumes:
-#  postgres-data:
+  postgres-data:
   media:
   static:
