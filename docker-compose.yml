@@ -14,20 +14,20 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
-  db-admin:
-    restart: always
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    env_file:
-      - .env
-    depends_on:
-      - db
-    ports:
-      - "8080:80"
-    networks:
-      - backend
+#  db-admin:
+#    restart: always
+#    image: dpage/pgadmin4
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+#    env_file:
+#      - .env
+#    depends_on:
+#      - db
+#    ports:
+#      - "8080:80"
+#    networks:
+#      - backend
 
   wbapi:
     image: wallbreaker_api:${APP_VERSION}
