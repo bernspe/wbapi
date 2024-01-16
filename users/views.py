@@ -69,7 +69,7 @@ class UserViewSet(viewsets.ModelViewSet):
                         d = request.data['geolocation']
                         lon = d['longitude']
                         lat = d['latitude']
-                        ort,plz=get_city_from_geolocation(BASE_DIR,lon,lat,geolocation_df=settings.geolocation_df)
+                        ort,plz=get_city_from_geolocation(BASE_DIR,lon,lat,geolocation_df=geolocation_df)
                         user.geolocation={**d, 'ort':ort,'plz':plz}
                         user.save()
                     return Response(serializer.data, status=status.HTTP_200_OK)

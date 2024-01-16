@@ -32,7 +32,8 @@ RUN conda create --name dockerenv python=3.11 pip
 RUN echo "conda activate dockerenv" >> ~/.bashrc
 SHELL ["/bin/bash", "--login", "-c"]
 
-RUN conda install numpy pandas geopandas rtree && \
+# need to install old geopandas version at Hetzner ARM architecture, otherwise segmentation fault -> core dump
+RUN conda install numpy pandas geopandas=0.11 rtree && \
     conda install djangorestframework && \
     conda install django-oauth-toolkit && \
     conda install django-environ && \

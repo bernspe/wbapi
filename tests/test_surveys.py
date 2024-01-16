@@ -4,6 +4,8 @@ import requests
 import pytest
 import pandas as pd
 
+base_url="https://static.94.87.140.128.clients.your-server.de/wbapi/"
+#base_url = 'http://localhost:8000/'
 
 def whodas():
     with open('../icf_struct/whodas12_de.json') as fp:

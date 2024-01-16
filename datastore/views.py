@@ -30,7 +30,7 @@ class SurveyView(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def getshortlist(self,request):
         try:
-            users_w_surveys = User.objects.filter(survey__isnull=False, avatar__isnull=False)
+            users_w_surveys = User.objects.filter(survey__isnull=False)
             surveylist1 = [u.survey.order_by('score').last().id for u in users_w_surveys]
             surveylist2 = Survey.objects.filter(id__in=surveylist1, score__gt=0).order_by('score')
             serializer = ShortSurveySerializer(surveylist2, many=True)

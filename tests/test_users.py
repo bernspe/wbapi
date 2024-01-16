@@ -15,6 +15,8 @@ NUMBER_OF_USERS = 3
 USERTYPE='survey'
 KEEP_USERS=True
 
+base_url="https://static.94.87.140.128.clients.your-server.de/wbapi/"
+#base_url = 'http://localhost:8000/'
 def svg_encode(svg):
     # Ref: https://bl.ocks.org/jennyknuth/222825e315d45a738ed9d6e04c7a88d0
     # Encode an SVG string so it can be embedded into a data URL.
