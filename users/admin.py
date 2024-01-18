@@ -34,7 +34,7 @@ class UserAdmin(UserAdmin):
     def geo(self,obj):
         if obj.geolocation:
             #return obj.geolocation
-            return 'x (lon): '+obj.geolocation['longitude']+', y (lat): '+obj.geolocation['latitude']
+            return 'x (lon): '+str(obj.geolocation['longitude'])+', y (lat): '+str(obj.geolocation['latitude'])
         else:
             return '-'
 
