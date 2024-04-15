@@ -11,7 +11,7 @@ from geodata.funcs import generate_random_germany_locations
 from users.models import User
 from wbapi.settings import BASE_DIR
 
-NUMBER_OF_USERS = 3
+NUMBER_OF_USERS = 30
 USERTYPE='survey'
 KEEP_USERS=True
 
@@ -90,7 +90,7 @@ def update_user_geolocation(load_users, request):
     df['lon']=pd.Series(lon)
     df['lat']=pd.Series(lat)
     df['response_status'] = df.apply(lambda x: send_update_user(base_url + 'users/' + x['username'] + '/', x['token'],
-                                                                {"geolocation": {"longitude": str(x['lon']), "latitude": str(x['lat'])}}), axis=1)
+                                                                {"geolocation": {"longitude": x['lon'], "latitude": x['lat']}}), axis=1)
     return df
 
 

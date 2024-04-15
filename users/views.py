@@ -1,8 +1,11 @@
 import io
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import random
+
 from PIL import Image
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files import File
@@ -10,24 +13,24 @@ from django.core.files.base import ContentFile
 
 from django.db import transaction
 from django.shortcuts import render
+from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import api_view, action
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.generics import get_object_or_404, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from oauth2_provider.models import AccessToken, RefreshToken
-
-from geodata.funcs import import_geo_files, get_city_from_geolocation
-from users.models import User
-from users.permissions import IsOwner, IsStaff
-from users.serializers import RegisterSerializer, UserSerializer, StaffUserSerializer
-from wbapi import settings
-from wbapi.settings import geolocation_df, BASE_DIR
+from oauth2_provider.oauth2_validators import Application
+from oauth2_provider.views import TokenView as TV
+from users.models import User, Institution
+from users.permissions import IsOwner, IsStaff, IsMyInstitution, IsVerwaltung
+from users.serializers import RegisterSerializer, UserSerializer, StaffUserSerializer, ForgotPasswordSerializer, \
+    ChangePasswordSerializer, InstitutionSerializer
 
 
 def hasExpired(expiry):
@@ -50,12 +53,10 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             permission_classes = [permissions.IsAdminUser]
         else:
-            permission_classes = [IsAuthenticated, IsOwner | IsStaff]
+            permission_classes = [IsAuthenticated, IsOwner]
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.request.user.is_staff | self.request.user.is_superuser:
-            return StaffUserSerializer
         return UserSerializer
 
     def partial_update(self, request, pk=None, **kwargs):
@@ -69,8 +70,9 @@ class UserViewSet(viewsets.ModelViewSet):
                         d = request.data['geolocation']
                         lon = d['longitude']
                         lat = d['latitude']
-                        ort,plz=get_city_from_geolocation(BASE_DIR,lon,lat,geolocation_df=geolocation_df)
-                        user.geolocation={**d, 'ort':ort,'plz':plz}
+                        #ort,plz=get_city_from_geolocation(BASE_DIR,lon,lat,geolocation_df=geolocation_df)
+                        #user.geolocation={**d, 'ort':ort,'plz':plz}
+                        user.geolocation = {**d}
                         user.save()
                     return Response(serializer.data, status=status.HTTP_200_OK)
             except Exception as e:
@@ -80,30 +82,103 @@ class UserViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, **kwargs):
         queryset = User.objects.all()
         user = get_object_or_404(queryset, pk=pk)
-        if request.user == user:
-            serializer = UserSerializer(user)
-        elif request.user.is_staff | request.user.is_admin:
-            serializer = StaffUserSerializer(user)
-        else:
-            serializer = UserSerializer(user)
+        serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+
+    @action(methods=['post'], detail=True)
+    @permission_classes([IsAuthenticated])
+    def set_new_email(self, request, pk=None):
+        """
+        Set new EMail after checking token
+        :param
+        :return: user object
+        """
+        data = request.data
+        emailtoken = data['emailtoken']
+        email=data['email']
+        if len(emailtoken) > 0:
+            try:
+                user = User.objects.get(username=pk, emailtoken=emailtoken)
+                # check if email already exists
+                email_try = User.objects.filter(email=email)
+                if len(email_try)>0:
+                    return Response({'error': 'Email already in use'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                serializer = UserSerializer(user, data=data, partial=True)
+                if serializer.is_valid():
+                    with transaction.atomic():
+                        serializer.save(is_emailvalidated=True)
+                        return Response(data={'new_email': email}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'User not found or Emailtoken not valid'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            except:
+                return Response({'error': 'User not found or Emailtoken not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'No email or emailtoken provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=True)
+    @permission_classes([IsAuthenticated])
+    def email_user(self, request, pk=None):
+        user = User.objects.get(username=pk)
+        emailtype = request.GET.get('type',None)
+        emailfolder = request.GET.get('folder','user')
+        add_info = request.GET.get('add_info','')
+        if emailtype:
+            try:
+                t = get_template(emailfolder+'/'+emailtype+'.html')
+                ts = str(datetime.now(timezone.utc))
+                user.email_user('ICFx Mail: '+emailtype+ '(' + ts+')', t.render(context={
+                    'Firstname': user.first_name, 'random': str(random.randint(0, 9)), 'add_info':add_info}))
+                return Response({'username': user.username}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(data={"error": "Email Type not specified"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=True)
+    @permission_classes([IsAuthenticated])
+    def email_user_token(self, request, pk=None):
+        """
+        Send 6-char token via email to user upon request
+        :param
+        :return: username
+        """
+        try:
+            user = User.objects.get(username=pk)
+            serializer = UserSerializer(user, data=request.data,
+                                        partial=True)  # set partial=True to update a data partially
+            if serializer.is_valid():
+                with transaction.atomic():
+                    token = user.create_email_token()
+                    serializer.save(emailtoken=token, is_emailvalidated=False)
+                    t = get_template('user/email-token.html')
+                    ts = str(datetime.now(timezone.utc))
+                    user.email_user('EMail Token' + ts, t.render(context={
+                        'Firstname': user.first_name,
+                        'token': token}))
+                    return Response({'username': user.username}, status=status.HTTP_200_OK)
+            else:
+                Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(methods=['post'],detail=True)
     def setgroup(self,request, pk=None):
         try:
-            user=User.objects.get(username=pk)
+            user = User.objects.get(username=pk)
             g_name = request.data.get('group')
-            if (g_name=='patient') | (g_name=='survey'):
-                g = Group.objects.get(name=g_name)
+            g_replace = request.data.get('replace')
+            g = Group.objects.get(name=g_name)
+            if g_replace:
                 user.groups.clear()
-                user.groups.add(g)
-                ga = user.groups.all()
-                return Response(data={"groups": [x.name for x in ga]}, status=status.HTTP_200_OK)
-            else:
-                return Response(data={"error": "wrong group spec"}, status=status.HTTP_400_BAD_REQUEST)
+            user.groups.add(g)
+            ga = user.groups.all()
+            return Response(data={"groups": [x.name for x in ga]}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
     @action(methods=['post'], detail=True)
     def updateavatar(self, request, pk=None):
         try:
@@ -144,6 +219,17 @@ class UserRegister(OAuthLibMixin, APIView): ##CsrfExemptMixin,
                     if not ('username' in request.data.keys()):
                         request.POST._mutable = True
                         request.POST['username']=user.username
+                    if 'codename' in request.data.keys():
+                        cn = request.POST['codename']
+                        if len(cn)>3:
+                            institution = Institution.objects.filter(codename=cn)
+                            if len(institution) > 0:
+                                i = institution.first()
+                                user.institution_link = i # den Benutzer der gefundendenen Institution zubuchen
+                                user.groups.add(
+                                    Group.objects.get(name__exact='medworker'))  # Leserechte für Dienstplan vergeben
+                                user.groups.remove(Group.objects.get(name__exact='patient'))
+                                user.save()
                     if 'testuser' in request.data.keys():
                         g = Group.objects.get(name='testuser')
                         user.groups.add(g)
@@ -156,28 +242,6 @@ class UserRegister(OAuthLibMixin, APIView): ##CsrfExemptMixin,
             except Exception as e:
                 return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@csrf_exempt
-@api_view(['GET'])
-def get_login_requirements(request, format=None):
-    """
-    retrieves the necessary login credentials for specific username
-    :param username
-    :param format:
-    :return: password requirements
-    """
-    username = request.GET.get('username')
-    try:
-        user=User.objects.get(username=username)
-        gnames=[g.name for g in user.groups.all()]
-        requirement='none'
-        for req in user.PASSWORD_REQUIREMENTS:
-            if req[0] in gnames:
-                requirement=req[1]
-        return Response(data={'credentials': requirement})
-    except Exception as e:
-        return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 @csrf_exempt
 @api_view(['GET'])
@@ -205,3 +269,204 @@ def check_token(request, format=None):
     serializer = UserSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+class TokenView(TV):
+    """
+    Get OAuth Access Token from Login with email or refreshToken or username
+    """
+    def create_token_response(self, request):
+        request.POST._mutable = True
+        email = request.POST.pop('email', None)
+        username = request.POST.pop('username',None)
+        print('Requesting user: %s'%username)
+        refresh_token = request.POST.pop('refresh_token',None)
+        if type(refresh_token)==list:
+            refresh_token=refresh_token[0]
+        if username:
+            user=get_user_model().objects.get(username=username[0])
+            request.POST['username'] = username[0]
+        if email:
+            username = get_user_model().objects.filter(email__iexact=email[0]).values_list('username', flat=True).last() # iexact = case insensitive
+            request.POST['username'] = username
+        if refresh_token:
+            try:
+                rt=RefreshToken.objects.get(token__exact=refresh_token)
+                user=rt.user
+                rt.revoke()
+                request.POST['username'] = user.username
+                client_id=request.POST.get('client_id')
+                application = Application.objects.get(client_id=client_id)
+                scope=request.POST.get('scope')
+                present = datetime.now().replace(tzinfo=timezone.utc)
+                expires = present + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS)
+                acc_token=AccessToken.objects.create(user=user, application=application, expires=expires, token=common.generate_token(), scope=scope )
+                r_token=RefreshToken.objects.create(user=user, application=application,access_token=acc_token,token=common.generate_token())
+                request.POST['refresh_token']=str(r_token)
+                #rt.access_token=acc_token
+                #rt.save()
+                #acc_token.save()
+            except Exception as e:
+                print(e)
+        return super(TokenView, self).create_token_response(request)
+
+class ChangePasswordView(UpdateAPIView):
+        """
+        An endpoint for changing password.
+        """
+        serializer_class = ChangePasswordSerializer
+        model = User
+        permission_classes = (IsAuthenticated,)
+
+        def get_object(self, queryset=None):
+            obj = self.request.user
+            return obj
+
+        def update(self, request, *args, **kwargs):
+            self.object = self.get_object()
+            serializer = self.get_serializer(data=request.data)
+
+            if serializer.is_valid():
+                # Check old password
+                if not self.object.check_password(serializer.data.get("old_password")):
+                    return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+                # set_password also hashes the password that the user will get
+                self.object.set_password(serializer.data.get("new_password"))
+                self.object.save()
+                response = {
+                    'status': 'success',
+                    'code': status.HTTP_200_OK,
+                    'message': 'Password updated successfully',
+                    'data': []
+                }
+
+                return Response(response)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@csrf_exempt
+@api_view(['GET'])
+def forgot_password(request):
+    """
+    Send 6-char token via email to user upon request
+    :param
+    :return: username
+    """
+    try:
+        email = request.GET.get('email')
+        user = get_user_model().objects.get(email__iexact=email)
+        serializer = UserSerializer(user, data=request.data, partial=True)  # set partial=True to update a data partially
+        if serializer.is_valid():
+            with transaction.atomic():
+                token = user.create_email_token()
+                serializer.save(emailtoken=token,is_emailvalidated=False)
+                t = get_template('user/email-forgotpassword.html')
+                ts=str(datetime.now(timezone.utc))
+                user.email_user('Passwort vergessen. '+ts, t.render(context={
+                    'Firstname': user.first_name,
+                    'token': token}))
+                return Response({'username':user.username}, status=status.HTTP_200_OK)
+        else:
+            Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response({'error':'User not found'},status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def set_new_password(request):
+    """
+    Set new Password and Refreshes Expiry
+    :param
+    :return: username
+    """
+    data=request.data
+    username = data['username']
+    emailtoken=data['emailtoken']
+    if ((len(username)>0) & (len(emailtoken)>0)):
+        try:
+            user = User.objects.get(username=username, emailtoken=emailtoken)
+            serializer=ForgotPasswordSerializer(user, data=data, partial=True)
+            if serializer.is_valid():
+                with transaction.atomic():
+                    serializer.save()
+                    return Response(data={'new_password':'OK'},status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'User not found or Emailtoken not valid'}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error': 'User not found or Emailtoken not valid'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'error': 'No Username or emailtoken provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class InstitutionViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing institution instances.
+    """
+    queryset = Institution.objects.all()
+    authentication_classes = [OAuth2Authentication]
+    serializer_class = InstitutionSerializer
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == 'list':
+            permission_classes = [IsAdminUser]
+        else:
+            permission_classes = [IsAuthenticated, IsMyInstitution, IsVerwaltung]
+        return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        user = request.user
+        serializer = InstitutionSerializer(data=data)
+        if serializer.is_valid():
+            try:
+                with transaction.atomic():
+                    inst = serializer.save()
+                    user.institution_link=inst
+                    user.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk=None, *args, **kwargs):
+        inst=Institution.objects.get(id=pk)
+        user = request.user
+        serializer = self.get_serializer(inst, data=request.data, partial=True)
+        if serializer.is_valid():
+            try:
+                with transaction.atomic():
+                    user.institution_link=inst
+                    user.save()
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=True)
+    def checkcodename(self, request, pk=None):
+        """
+        checkt, ob der gesendete codename zur Institution bereits gehört, oder ob er verfügbar (=unique) ist
+        :param request: codename
+        :param pk: institution
+        :return: 200, wenn o.a. true, ansonsten 400
+        """
+        try:
+            cn = request.GET.get('codename',None)
+            inst = Institution.objects.get(id=pk)
+            cn_belongs_to_this_institution = inst.codename==cn
+            if cn_belongs_to_this_institution:
+                return Response(status=status.HTTP_200_OK)
+            else:
+                i = Institution.objects.filter(codename=cn)
+                if len(i)==0:
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

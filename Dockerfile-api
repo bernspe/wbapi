@@ -1,55 +1,10 @@
-FROM continuumio/miniconda3
-#FROM python:3.11-slim
+FROM python:3.11-slim
 # set environment variables
 ENV PYTHONUNBUFFERED 1
-# RUN apt-get update && apt-get install -y gunicorn
-# RUN apt-get update && apt-get install -y libpq-dev gcc python-dev-is-python3 musl-dev ffmpeg libsm6 libxext6 gunicorn
-#RUN apt-get update && \
-#    apt-get install -y software-properties-common && \
-#    rm -rf /var/lib/apt/lists/*
 
-#RUN add-apt-repository ppa:ubuntugis/ppa && sudo apt-get update
-#RUN apt-get update
-#RUN apt-get install gdal-bin
-#RUN apt-get install libgdal-dev
-#ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
-#ENV C_INCLUDE_PATH=/usr/include/gdal
-#RUN pip install GDAL
-
-# COPY --from=perrygeo/gdal-base:latest /usr/local /usr/local
-# Will copy conda from existing Docker image
-#COPY --from=continuumio/miniconda /opt/conda /opt/conda
-ENV PATH=/opt/conda/bin:$PATH
-# Installing geopandas and all it's dependencies
-# Usage examples
-RUN set -ex && \
-    conda config --set always_yes yes --set changeps1 no && \
-    conda info -a && \
-    conda config --add channels conda-forge
-
-RUN conda create --name dockerenv python=3.11 pip
-
-RUN echo "conda activate dockerenv" >> ~/.bashrc
-SHELL ["/bin/bash", "--login", "-c"]
-
-# need to install old geopandas version at Hetzner ARM architecture, otherwise segmentation fault -> core dump
-RUN conda install numpy pandas geopandas=0.11 rtree && \
-    conda install djangorestframework && \
-    conda install django-oauth-toolkit && \
-    conda install django-environ && \
-    conda install django-cors-headers && \
-    conda install gunicorn
-    #conda install --quiet --freeze-installed -c main conda-pack
-
-
+RUN apt-get update && apt-get install -y libpq-dev gcc python-dev-is-python3 musl-dev ffmpeg libsm6 libxext6 postgresql-client-common postgresql-client git cron
 RUN mkdir /code
 WORKDIR /code
-
-# ADD requirements.txt /code/
-RUN pip install python-datauri uri-template
-RUN pip install "psycopg[binary]"
-# RUN pip3 install -r requirements.txt
+ADD requirements.txt /code/
+RUN pip3 install -r requirements.txt
 ADD ./ /code/
-ENV PYTHONPATH=$PYTHONPATH:/opt/conda/envs/dockerenv/lib/python3.11/site-packages
-
-RUN chmod +x entrypoint.sh

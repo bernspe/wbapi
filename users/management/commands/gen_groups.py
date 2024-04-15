@@ -27,19 +27,10 @@ grouppermdict= {
         'users.delete_user',
         'users.view_user'
     ],
-    'survey': [
-        'datastore.add_survey',
-        'datastore.change_survey',
-        'datastore.delete_survey',
-        'datastore.view_survey',
-        'auth.view_permission',
-        'oauth2_provider.add_accesstoken',
-        'oauth2_provider.delete_accesstoken',
-        'oauth2_provider.view_accesstoken',
-        'users.change_user',
-        'users.delete_user',
-        'users.view_user'
-    ],
+    'Basic': ['auth.view_permission',
+              'oauth2_provider.add_accesstoken',
+              'oauth2_provider.delete_accesstoken',
+              'oauth2_provider.view_accesstoken'],
     'patient': [
         'datastore.add_patientdata',
         'datastore.change_patientdata',

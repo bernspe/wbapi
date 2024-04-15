@@ -6,8 +6,12 @@ from django.db.models import BooleanField
 from rest_framework import serializers
 
 from datastore.models import Survey, PatientData
-from users.models import User
+from users.models import User, Institution
 
+class InstitutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Institution
+        fields = '__all__'
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,6 +21,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     groups = GroupSerializer(many=True)
+    institution_link = InstitutionSerializer(many=False)
     lastpost = serializers.SerializerMethodField('getlastpost')
 
     class Meta:
@@ -50,7 +55,7 @@ class StaffUserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    testuser = BooleanField
+
     def update(self, instance, validated_data):
         validated_data.pop('password',None)
         instance.save()
@@ -58,33 +63,67 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         try:
+            email = data.get('email')
+            if email:
+                data.update({'email': email.lower()})
             username=data.get('username')
             if not username:
+                if not email:
+                    raise serializers.ValidationError(("Neither username nor email provided"))
                 username = str(uuid.uuid4())
                 data.update({'username': username})
             user = User.objects.filter(username=username)
-            if (len(user) > 0):
+            email = User.objects.filter(email=email)
+            if (len(user) > 0) | (len(email) > 0):
                 raise serializers.ValidationError(("Username or email already exists"))
         except User.DoesNotExist:
             pass
         return data
 
     def create(self, validated_data, instance=None):
+        """
+        Jeder neu angemeldete Benutzer wird automatisch der Patient-Gruppe zugeordnet
+        """
         user = User.objects.create(**validated_data)
-        password=validated_data['password']
-        user.set_password(password)
-        try:
-            dob=date.fromisoformat(password) # try to get the date from YYYY-MM-DD
-            user.date_of_birth=dob
-            g = Group.objects.get(name='patient')
-            user.groups.add(g)
-        except:
-            g = Group.objects.get(name='survey')
-            user.groups.add(g)
+        user.set_password(validated_data['password'])
+        user.groups.add(Group.objects.get(name__exact='patient'))
         user.save()
         return user
 
     class Meta:
         model = User
         fields = '__all__'
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    model = User
+
+    """
+    Serializer for password change endpoint.
+    """
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password'])
+        instance.is_emailvalidated=True
+        instance.emailtoken=''
+        instance.save()
+        return instance
+
+    def validate(self, data):
+        token = data.get('emailtoken')
+        user = User.objects.filter(username=data.get('username'), emailtoken=token)
+        if (len(user)==0):
+            raise serializers.ValidationError({"emailtoken": "Emailtoken do not match or user does not exist"})
+        return data
+
+    class Meta:
+        model = User
+        fields = ('username','password','emailtoken','is_emailvalidated')
+
+
+
+
 

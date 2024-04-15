@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.safestring import mark_safe
 
-from users.models import User
+from users.models import User, Institution
 
 
 class UserChangeForm(forms.ModelForm):
@@ -22,7 +22,9 @@ class UserChangeForm(forms.ModelForm):
 
 class UserAdmin(UserAdmin):
     form = UserChangeForm
-    list_display = ['avatar_thumb','username','geo','date_of_birth','date_joined','get_groups','is_staff']
+    list_filter = ['institution_link']
+    search_fields = ['last_name','email']
+    list_display = ['avatar_thumb','first_name','last_name','email','date_of_birth','date_joined','get_groups','institution','is_staff']
     readonly_fields = ('date_joined','avatar_preview',)
     fieldsets = (
             (None, {'fields': ('username','date_of_birth','age_group','sex', 'avatar_preview','geolocation', 'groups','date_joined')}),
@@ -52,8 +54,20 @@ class UserAdmin(UserAdmin):
         else:
             return '(No image)'
 
+    def institution(self, obj):
+        i = obj.institution_link
+        if i:
+            return i.name
+        else:
+            return ''
+
     avatar_preview.short_description = 'Preview'
 
+class InstitutionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'created', 'expires']
+    list_filter = ['created','expires']
+    readonly_fields = ('id',)
 
 # Now register the new UserAdmin...
 admin.site.register(User, UserAdmin)
+admin.site.register(Institution, InstitutionAdmin)

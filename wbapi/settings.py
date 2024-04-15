@@ -12,10 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
-from geodata.funcs import import_geo_files
-import os
-from pathlib import Path
-
 import environ
 
 env = environ.Env(
@@ -60,7 +56,7 @@ else:
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
-
+DEFAULT_EXPIRY = 100
 # SECURITY WARNING: don't run with debug turned on in production!
 
 if not DEBUG:

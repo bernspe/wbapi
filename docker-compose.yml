@@ -43,14 +43,15 @@ services:
       - static:/code/static
     depends_on:
       - db
-    entrypoint: ["./entrypoint.sh","${CLIENT_ID}","${CLIENT_SECRET}"]
+    # entrypoint: ["./entrypoint.sh","${CLIENT_ID}","${CLIENT_SECRET}"]
     #Use for remote deploy
     # --threads=4 --worker-class=gthread --worker-tmp-dir /dev/shm
     # command: bash -c "conda activate dockerenv && python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && python manage.py initadmin && python manage.py gen_groups && python manage.py createapplication --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --skip-authorization --name WBAPIAuth confidential password && gunicorn --bind 0.0.0.0:8002 wbapi.wsgi:application"
+    command: bash -c "python manage.py collectstatic --no-input && python manage.py migrate && python manage.py initadmin && python manage.py create_groups && python manage.py createapplication --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --skip-authorization --name DienstplanAuth confidential password && gunicorn --bind 0.0.0.0:8002 DienstplanerAPI.wsgi:application"
     # command: bash -c "gunicorn --bind 0.0.0.0:8002 wbapi.wsgi:application"
     # For debugging to make it run forever
     # command: tail -F /dev/null
-    # restart: always
+    restart: always
     networks:
       - backend
       - dienstplanerapi_backend
