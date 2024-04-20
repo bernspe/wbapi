@@ -39,7 +39,7 @@ class SurveySerializer(serializers.ModelSerializer):
             if 'data' in data.keys():
                 d=data['data']
                 if d is None:
-                    raise serializers.ValidationError("No Whodas Data sent")
+                    return data
                 if len(d)>0:
                     all_count, hit_count, error_dict = check_survey(d)
                     data['score']=int(hit_count/all_count*100)
@@ -50,7 +50,7 @@ class SurveySerializer(serializers.ModelSerializer):
                         instance.data = data['data']
                         instance.save()
                 else:
-                    raise serializers.ValidationError("No Whodas Data sent")
+                    return data
         return data
 
     def create(self, validated_data):

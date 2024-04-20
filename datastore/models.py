@@ -11,6 +11,7 @@ class Survey(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     redirect = models.CharField(max_length=30, null=True, blank=True)
+    redirect_id = models.CharField(max_length=50,null=True,blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='my_survey', on_delete=models.SET_NULL, null=True,
                               blank=True)
     cellparent = models.ForeignKey('datastore.CellData', related_name='surveydata', on_delete=models.SET_NULL,
@@ -32,6 +33,7 @@ class PatientData(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     redirect = models.CharField(max_length=30,null=True, blank=True)
+    redirect_id = models.CharField(max_length=50, null=True, blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='my_patientdata', on_delete=models.SET_NULL, null=True,
                               blank=True)
     cellparent = models.ForeignKey('datastore.CellData', related_name='cell_content', on_delete=models.CASCADE,

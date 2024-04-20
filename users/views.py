@@ -227,7 +227,7 @@ class UserRegister(OAuthLibMixin, APIView): ##CsrfExemptMixin,
                                 i = institution.first()
                                 user.institution_link = i # den Benutzer der gefundendenen Institution zubuchen
                                 user.groups.add(
-                                    Group.objects.get(name__exact='medworker'))  # Leserechte für Dienstplan vergeben
+                                    Group.objects.get(name__exact='medworker'))  # Leserechte vergeben
                                 user.groups.remove(Group.objects.get(name__exact='patient'))
                                 user.save()
                     if 'testuser' in request.data.keys():

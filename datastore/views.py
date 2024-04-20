@@ -26,7 +26,7 @@ class SurveyView(viewsets.ModelViewSet):
         return self.queryset
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(owner=self.request.user, data={})
 
     @action(methods=['get'], detail=False)
     def getshortlist(self,request):
@@ -83,7 +83,7 @@ class PatientView(viewsets.ModelViewSet):
             return self.queryset
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(owner=self.request.user, data={})
 
 class CellView(viewsets.ModelViewSet):
     serializer_class = CellSerializer
