@@ -106,16 +106,18 @@ class CellView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         date = request.GET.get('date',None)
         status = request.GET.get('status',None)
+        sort = request.GET.get('sort','last_modified')
         queryset = self.filter_queryset(self.get_queryset())
         if date is not None:
-            queryset = queryset.filter(last_modified__date=date).order_by('-last_modified')
+            queryset = queryset.filter(last_modified__date=date)
         if status is not None:
-            queryset = queryset.filter(status=status).order_by('-last_modified')
+            queryset = queryset.filter(status=status)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
+        queryset = queryset.order_by(sort)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
