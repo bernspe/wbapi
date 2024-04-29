@@ -17,7 +17,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "password", "date_of_birth",'age_group', "is_active", 'avatar', 'geolocation', "is_staff"]
+        fields = '__all__'
 
 
 class UserAdmin(UserAdmin):
