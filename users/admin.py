@@ -27,7 +27,7 @@ class UserAdmin(UserAdmin):
     list_display = ['avatar_thumb','first_name','last_name','email','date_of_birth','date_joined','get_groups','institution','is_staff']
     readonly_fields = ('date_joined','avatar_preview',)
     fieldsets = (
-            (None, {'fields': ('username','date_of_birth','age_group','sex', 'avatar_preview','geolocation', 'groups','date_joined')}),
+            (None, {'fields': ('username','date_of_birth','age_group','sex', 'avatar_preview','geolocation', 'groups','date_joined','institution_link')}),
     )
 
     def get_groups(self, obj):
