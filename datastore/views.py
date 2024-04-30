@@ -142,6 +142,7 @@ class CellView(viewsets.ModelViewSet):
     def share(self, request, pk=None):
         try:
             authcode = request.GET.get('authcode',None)
+            authorized = False
             if authcode:
                 possible_surveys = Survey.objects.filter(id=pk).all()
                 possible_patients = PatientData.objects.filter(id=pk).all()
@@ -153,7 +154,11 @@ class CellView(viewsets.ModelViewSet):
                     if authcode in c.searchfield:
                         c.sharedwith.add(u)
                         c.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                        authorized=True
+                if authorized:
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return Response(status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:

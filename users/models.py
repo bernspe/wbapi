@@ -9,8 +9,16 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from wbapi import settings
-from wbapi.settings import DEFAULT_EXPIRY
+from wbapi.settings import DEFAULT_EXPIRY, EMAIL_HOST_USER, EMAIL_HOST, EMAIL_HOST_PASSWORD, DKIM_PRIVATE_KEY_FILE, \
+    DKIM_SELECTOR, EMAIL_FROM
 
+import htmlmin
+from django.contrib.auth.models import AbstractUser
+
+import smtplib
+import dkim
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 def get_default_expiry():
     return datetime.datetime.now(datetime.timezone.utc) +  datetime.timedelta(days=DEFAULT_EXPIRY)
@@ -21,6 +29,63 @@ class OverwriteStorage(FileSystemStorage):
         if self.exists(name):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
+
+
+def send_email(
+    to_email,
+    sender_email,
+    subject,
+    message_html,
+    dkim_private_key_path=DKIM_PRIVATE_KEY_FILE,
+    dkim_selector=DKIM_SELECTOR,
+):
+
+    # the `email` library assumes it is working with string objects.
+    # the `dkim` library assumes it is working with byte objects.
+    # this function performs the acrobatics to make them both happy.
+    message_text='Diese Email kann nur als HTML angezeigt werden. Bitte aktivieren Sie HTML in den EMail-Einstellungen.'
+    if isinstance(message_text, bytes):
+        # needed for Python 3.
+        message_text = message_text.decode()
+
+    if isinstance(message_html, bytes):
+        # needed for Python 3.
+        message_html = message_html.decode()
+
+    sender_domain = sender_email.split("@")[-1]
+
+    msg = MIMEMultipart("alternative")
+    msg.attach(MIMEText(message_text, "plain"))
+    msg.attach(MIMEText(message_html, "html"))
+    msg["To"] = to_email
+    msg["From"] = sender_email
+    msg["Subject"] = subject
+    msg_data = msg.as_bytes()
+
+    if dkim_private_key_path and dkim_selector:
+        # the dkim library uses regex on byte strings so everything
+        # needs to be encoded from strings to bytes.
+        with open(dkim_private_key_path) as fh:
+            dkim_private_key = fh.read()
+        headers = [b"To", b"From", b"Subject"]
+        sig = dkim.sign(
+            message=msg_data,
+            selector=str(dkim_selector).encode(),
+            domain=sender_domain.encode(),
+            privkey=dkim_private_key.encode(),
+            include_headers=headers,
+        )
+        # add the dkim signature to the email message headers.
+        # decode the signature back to string_type because later on
+        # the call to msg.as_string() performs it's own bytes encoding...
+        msg["DKIM-Signature"] = sig[len("DKIM-Signature: ") :].decode()
+        msg_data = msg.as_bytes()
+
+    with smtplib.SMTP_SSL(EMAIL_HOST) as s:
+        s.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
+        s.sendmail(sender_email, [to_email], msg_data)
+        s.quit()
+    return msg
 
 # Create your models here.
 class User(AbstractUser):
@@ -59,6 +124,13 @@ class User(AbstractUser):
 
     REQUIRED_FIELDS = []
 
+    def email_user(self, subject, message, to_email, from_email=EMAIL_FROM, **kwargs):
+        '''
+        Sends an email to this User.
+        '''
+        msg_minified=htmlmin.minify(message)
+        email = to_email or self.email
+        send_email(email,from_email,subject,msg_minified)
 
 class Institution(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -122,6 +122,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @permission_classes([IsAuthenticated])
     def email_user(self, request, pk=None):
         user = User.objects.get(username=pk)
+        to_email = request.GET.get('email',None)
         emailtype = request.GET.get('type',None)
         emailfolder = request.GET.get('folder','user')
         add_info = request.GET.get('add_info','')
@@ -130,7 +131,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 t = get_template(emailfolder+'/'+emailtype+'.html')
                 ts = str(datetime.now(timezone.utc))
                 user.email_user('ICFx Mail: '+emailtype+ '(' + ts+')', t.render(context={
-                    'Firstname': user.first_name, 'random': str(random.randint(0, 9)), 'add_info':add_info}))
+                    'Firstname': user.first_name, 'random': str(random.randint(0, 9)), 'add_info':add_info}),to_email)
                 return Response({'username': user.username}, status=status.HTTP_200_OK)
             except Exception as e:
                 return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

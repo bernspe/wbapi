@@ -211,3 +211,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+EMAIL_HOST=env('EMAIL_HOST')
+EMAIL_HOST_USER=env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD=env('EMAIL_HOST_PASSWORD')
+EMAIL_FROM=env('EMAIL_FROM')
+
+DKIM_PRIVATE_KEY_FILE=env('DKIM_PRIVATE_KEY_FILE')
+DKIM_SELECTOR=env('DKIM_SELECTOR')
