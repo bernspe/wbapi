@@ -1,3 +1,6 @@
+import random
+
+import names
 from django.shortcuts import render
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import viewsets, status
@@ -122,7 +125,11 @@ class CellView(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user, cell_content=[])
+        # create random name
+        firstName = names.get_first_name()
+        lastName = names.get_last_name()
+        rnumber = str(random.randint(111111,999999))
+        serializer.save(owner=self.request.user, cell_content=[], searchfield=firstName+' '+lastName+' '+rnumber)
 
     @action(methods=['get'], detail=False)
     def search(self, request, pk=None):
