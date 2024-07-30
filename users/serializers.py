@@ -46,6 +46,12 @@ class ShortUserSerializer(serializers.ModelSerializer):
         fields = ('age_group','sex','avatar','geolocation')
 
 
+class ICFDataUserSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True)
+    class Meta:
+        model=User
+        fields = ('first_name','last_name','avatar','groups')
+
 class StaffUserSerializer(serializers.ModelSerializer):
     groups = GroupSerializer(many=True)
 

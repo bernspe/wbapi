@@ -11,7 +11,7 @@ from django.db.models import Q
 from datastore.models import Survey, SurveyObjection, PatientData, CellData
 from datastore.permissions import IsSurvey
 from datastore.serializers import SurveySerializer, PatientSerializer, ShortSurveySerializer, SurveyObjectionSerializer, \
-    CellSerializer, CellSearchSerializer
+    CellSerializer, CellSearchSerializer, CellShortSerializer, PatientICFSerializer
 from users.models import User
 
 
@@ -88,6 +88,18 @@ class PatientView(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user, data={})
 
+    @action(methods=['get'], detail=True)
+    def getcompiledicf(self, request, pk=None):
+        try:
+            icf_item=PatientData.objects.get(id=pk, type='ICF')
+            cell_parent = icf_item.cellparent
+            input_types = ['CORESETS','WHODAS_SCREEN','WHODAS_CONTEXT']
+            input_items = PatientData.objects.filter(cellparent=cell_parent, type__in=input_types)
+            serializer = PatientICFSerializer([icf_item,*input_items], many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class CellView(viewsets.ModelViewSet):
     serializer_class = CellSerializer
     authentication_classes = [OAuth2Authentication]
@@ -117,11 +129,11 @@ class CellView(viewsets.ModelViewSet):
             queryset = queryset.filter(status=status)
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = CellShortSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         queryset = queryset.order_by(sort)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = CellShortSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def perform_create(self, serializer):
@@ -149,19 +161,21 @@ class CellView(viewsets.ModelViewSet):
     def share(self, request, pk=None):
         try:
             authcode = request.GET.get('authcode',None)
+            itemid = request.GET.get('itemid',None)
             authorized = False
             if authcode:
-                possible_surveys = Survey.objects.filter(id=pk).all()
-                possible_patients = PatientData.objects.filter(id=pk).all()
-                cp = [s.cellparent for s in possible_surveys] + [s.cellparent for s in possible_patients]
-                serializer = CellSerializer(cp,many=True)
+                cp = CellData.objects.get(id=pk)
+                    # possible_surveys = Survey.objects.filter(id=itemid).all()
+                    # possible_patients = PatientData.objects.filter(id=itemid).all()
+                    # cp = [s.cellparent for s in possible_surveys] + [s.cellparent for s in possible_patients]
+                    # serializer = CellSerializer(cp, many=True)
+                serializer = CellShortSerializer(cp,many=False, context={'request': request})
                 u = request.user
-                for c in cp:
-                    # searchfield validation
-                    if authcode in c.searchfield:
-                        c.sharedwith.add(u)
-                        c.save()
-                        authorized=True
+                # searchfield validation
+                if authcode in cp.searchfield:
+                    cp.sharedwith.add(u)
+                    cp.save()
+                    authorized=True
                 if authorized:
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 else:

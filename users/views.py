@@ -6,7 +6,7 @@ import random
 
 from PIL import Image
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -172,9 +172,19 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.get(username=pk)
             g_name = request.data.get('group')
             g_replace = request.data.get('replace')
-            g = Group.objects.get(name=g_name)
+            g,created = Group.objects.get_or_create(name=g_name)
+            if created:
+                if g_name=='patient':
+                    perms = Permission.objects.filter(group=Group.objects.get(name='patient'))
+                elif g_name=='misc':
+                    perms = Permission.objects.filter(group=Group.objects.get(name='testuser'))
+                else:
+                    perms=Permission.objects.filter(group=Group.objects.get(name='medworker'))
+                for p in perms:
+                    g.permissions.add(p)
             if g_replace:
                 user.groups.clear()
+
             user.groups.add(g)
             ga = user.groups.all()
             return Response(data={"groups": [x.name for x in ga]}, status=status.HTTP_200_OK)

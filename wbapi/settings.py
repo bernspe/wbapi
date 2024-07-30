@@ -21,6 +21,7 @@ env = environ.Env(
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+ICF_STRUCT_DIR = os.path.join(BASE_DIR,'icf_struct')
 APP_ENV=env('APP_ENV')
 if APP_ENV == 'production':
     DEBUG = True
@@ -59,10 +60,8 @@ SECRET_KEY = env('SECRET_KEY')
 DEFAULT_EXPIRY = 100
 # SECURITY WARNING: don't run with debug turned on in production!
 
-if not DEBUG:
-    geolocation_df=import_geo_files(BASE_DIR)
-else:
-    geolocation_df=None
+
+geolocation_df=None
 
 ALLOWED_HOSTS = ['*']
 
@@ -71,7 +70,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'cache-control','Access-Control-Allow-Origin','Access-Control-Expose-Headers','Invited-Username','sentry-trace'
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://128.140.87.94','https://static.94.87.140.128.clients.your-server.de','http://128.140.87.94','http://static.94.87.140.128.clients.your-server.de']
+TEST_ORIGINS = ['https://static.93.221.12.49.clients.your-server.de','http://static.93.221.12.49.clients.your-server.de']
+CSRF_TRUSTED_ORIGINS = ['https://128.140.87.94','https://static.94.87.140.128.clients.your-server.de','http://128.140.87.94','http://static.94.87.140.128.clients.your-server.de']+TEST_ORIGINS
 #set to false upon deployment
 CORS_ORIGIN_ALLOW_ALL=True
 CORS_ALLOW_ALL_ORIGINS=True
@@ -219,3 +219,4 @@ EMAIL_FROM=env('EMAIL_FROM')
 
 DKIM_PRIVATE_KEY_FILE=env('DKIM_PRIVATE_KEY_FILE')
 DKIM_SELECTOR=env('DKIM_SELECTOR')
+

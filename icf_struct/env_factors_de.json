@@ -1,0 +1,32 @@
+{
+  "1": {
+    "s": "Umwelt",
+    "t": "Klimaveränderung, Kriege, Luftqualität, Licht und Lärm",
+    "l": "e210,e215,e220,e225,e230,e235,e240,e245,e250,e255,e260",
+    "p": ["burning-forest-fire-destroys-natural-environment-outdoors-generated-by-ai.jpg","image-portrays-juxtaposition-strength-vulnerability-highlighting-soldier-s.jpg","environmentally-conscious-world-smoke-billowing-from-globe-with-green-leaf-generative-ai.jpg","planet-with-green-trees-sun-it.jpg","electricity-generated-by-pollution-harms-our-environment-generated-by-ai.jpg"]
+  },
+  "2": {
+    "s": "Gesundheitswesen",
+    "t": "Einrichtungen des Gesundheitssystems",
+    "l": "e580,",
+    "p": ["modern-hospital-room-with-empty-bed-chair-generated-by-ai.jpg","blue-screen-with-human-figure-middle-it.jpg","modern-hospital-machinery-illuminates-blue-mri-scanner-generated-by-ai.jpg","healthcare-ai-generated-photo.jpg","group-doctors-blue-scrubs-scrubs-stand-meeting-room.jpg"]
+  },
+    "3": {
+    "s": "Gesellschaft",
+    "t": "öffentliche Einrichtungen und soziale Hilfen",
+    "l": "e525,e555,e570,e575,e585,e590",
+    "p": ["businessman-during-presentation-front-his-colleagues-office-created-with-generative-ai-technology.jpg","one-young-woman-walking-with-modern-luggage-generated-by-ai.jpg","pair-hands-hold-paper-cutouts-family.jpg","blue-house-with-blue-roof-sky-background.jpg","unlocking-symbol-home-ownership-success-generated-by-ai.jpg"]
+  },
+    "4": {
+    "s": "Personen",
+    "t": "Persönlicher Kontakt mit Verwandten, Bekannten, Kollegen und Vorgesetzten",
+    "l": "e310,e315,e320,e325,e330,e335,e340,e350,e355,e360",
+    "p": ["young-adult-businesswoman-smiling-camera-indoors-generated-by-ai.jpg","man-suit-with-other-people-background.jpg","cute-caucasian-siblings-embrace-enjoying-christmas-lights-indoors-generated-by-ai.jpg","man-silhouette-row-care-separated-join.jpg","relaxed-family-finds-tranquility-holding-hands-during-peaceful-sunset.jpg"]
+  },
+    "5": {
+    "s": "Technik",
+    "t": "Hilfsmittel und Technologien",
+    "l": "e110,e115,e120,e125,e130,e140,e150,e155,e165",
+    "p": ["female-legs-prosthesis-close-up-walking-outdoor-city-park-woman-amputee-wearing-prosthetic-legs.jpg","antique-rotary-phone-wood-table-nostalgia-decor-generative-ai.jpg","one-woman-buying-groceries-modern-supermarket-with-shopping-cart-generated-by-ai.jpg","shiny-chrome-bumper-vintage-car-gleams-generative-ai.jpg","one-person-sitting-wheelchair-enjoys-freedom-generated-by-ai.jpg"]
+  }
+}
